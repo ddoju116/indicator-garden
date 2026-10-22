@@ -10,10 +10,10 @@
   section.id = 'community'; section.className = 'community-section';
   section.innerHTML = `<div class="section-heading"><div><span class="eyebrow">PHOTOS & QUESTIONS</span><h2>사진과 Q&A</h2><p>사진으로 전하는 소식과 함께 나누는 질문.</p></div></div>
     <p id="community-status" class="community-status" role="status"></p>
-    <details id="community-auth"><summary>관리자 로그인 · 회원가입</summary><p>사진 게시와 답변 작성을 위한 관리자 로그인입니다. 질문은 로그인 없이 남길 수 있습니다.</p><form id="community-login"><label for="community-email">이메일</label><input id="community-email" type="email" autocomplete="username" required maxlength="254"><label for="community-password">비밀번호</label><input id="community-password" type="password" autocomplete="current-password" required minlength="8"><div class="community-toolbar"><button type="submit">로그인</button><button type="button" id="community-signup">회원가입 · 인증메일 보내기</button></div></form><button id="community-verify" hidden>인증메일 다시 보내기</button></details>
+    <details id="community-auth"><summary>관리자 로그인 · 회원가입</summary><p>답변 작성과 게시물 관리를 위한 관리자 로그인입니다. 사진과 질문은 로그인 없이 남길 수 있습니다.</p><form id="community-login"><label for="community-email">이메일</label><input id="community-email" type="email" autocomplete="username" required maxlength="254"><label for="community-password">비밀번호</label><input id="community-password" type="password" autocomplete="current-password" required minlength="8"><div class="community-toolbar"><button type="submit">로그인</button><button type="button" id="community-signup">회원가입 · 인증메일 보내기</button></div></form><button id="community-verify" hidden>인증메일 다시 보내기</button></details>
     <div class="community-toolbar"><span id="community-account"></span><button id="community-logout" hidden>로그아웃</button></div>
     <div class="community-toolbar"><h3>사진 소식</h3><button id="photos-load">사진 목록 보기</button></div><p class="community-meta">사진은 열기를 눌렀을 때만 불러옵니다.</p>
-    <details id="photo-admin" hidden><summary>사진 올리기</summary><p>JPEG·PNG·WebP 파일을 선택하세요. 최대 960px, 48KB 이하로 압축하며 원본은 저장하지 않습니다.</p><input id="photo-file" aria-label="사진 파일" type="file" accept="image/jpeg,image/png,image/webp"><label for="photo-title">사진 설명</label><input id="photo-title" maxlength="120"><img id="photo-preview" class="community-preview" alt="압축 후 사진 미리보기" hidden><p id="photo-size" class="community-meta"></p><button id="photo-upload" class="primary" disabled>사진 게시</button></details>
+    <details id="photo-admin"><summary>사진 올리기</summary><p>로그인 없이 사진을 올릴 수 있습니다. 게시된 사진은 공개됩니다. JPEG·PNG·WebP 파일을 선택하세요. 최대 960px, 48KB 이하로 압축하며 원본은 저장하지 않습니다.</p><input id="photo-file" aria-label="사진 파일" type="file" accept="image/jpeg,image/png,image/webp"><label for="photo-title">사진 설명</label><input id="photo-title" maxlength="120"><img id="photo-preview" class="community-preview" alt="압축 후 사진 미리보기" hidden><p id="photo-size" class="community-meta"></p><button id="photo-upload" class="primary" disabled>사진 게시</button></details>
     <div id="photo-list" class="community-grid"></div><button id="photos-more" class="community-more" hidden>이전 사진 더 보기</button>
     <div class="community-toolbar"><h3>질문과 답변</h3><button id="questions-load">질문 목록 보기</button></div><p class="community-meta">로그인 없이 이름과 질문만 입력하면 됩니다. 질문과 답변은 공개되므로 개인정보는 적지 마세요. 최근 20개씩 표시합니다.</p>
     <form id="question-form"><label for="question-name">표시 이름</label><input id="question-name" maxlength="30" required placeholder="닉네임"><label for="question-text">질문</label><textarea id="question-text" maxlength="2000" required placeholder="궁금한 내용을 남겨주세요"></textarea><button class="primary" type="submit">질문 등록</button></form><div id="question-list"></div><button id="questions-more" class="community-more" hidden>이전 질문 더 보기</button>`;
@@ -43,12 +43,12 @@
     for(const [k,v] of Object.entries(query))u.searchParams.set(k,JSON.stringify(v));
     if(authorized)u.searchParams.set('auth',await token(authAccount));
     const r=await fetch(u,{method,headers:body?{'Content-Type':'application/json'}:{},body:body?JSON.stringify(body):undefined,cache:'no-store',referrerPolicy:'no-referrer'});
-    const data=await r.json();if(!r.ok)throw Error(r.status===401||r.status===403?'요청을 처리할 수 없습니다. 질문은 1분 간격으로 등록해주세요. 관리자 작업은 권한이 필요합니다.':'저장·조회 실패. 연결을 확인하고 다시 시도해주세요.');return data;
+    const data=await r.json();if(!r.ok)throw Error(r.status===401||r.status===403?'요청을 처리할 수 없습니다. 사진과 질문은 각각 1분 간격으로 등록해주세요. 관리자 작업은 권한이 필요합니다.':'저장·조회 실패. 연결을 확인하고 다시 시도해주세요.');return data;
   }
   async function busy(button, work){button.disabled=true;try{await work();}catch(e){const messages={INVALID_LOGIN_CREDENTIALS:'이메일 또는 비밀번호를 확인해주세요.',EMAIL_EXISTS:'이미 등록된 이메일입니다. 로그인해주세요.',TOO_MANY_ATTEMPTS_TRY_LATER:'요청이 많습니다. 잠시 뒤 다시 시도해주세요.'};status(messages[e.message]||e.message);}finally{button.disabled=button.id==='photo-upload'&&!candidate;}}
   function account(){
-    $c('#community-account').textContent=session?(admin?'관리자로 로그인됨':session.verified?'이메일 인증 완료':'이메일 인증 후 다시 로그인해주세요.'):'질문은 로그인 없이 작성할 수 있습니다.';
-    $c('#community-logout').hidden=!session;$c('#community-verify').hidden=!session||session.verified;$c('#photo-admin').hidden=!admin;
+    $c('#community-account').textContent=session?(admin?'관리자로 로그인됨':session.verified?'이메일 인증 완료':'이메일 인증 후 다시 로그인해주세요.'):'사진과 질문은 로그인 없이 올릴 수 있습니다.';
+    $c('#community-logout').hidden=!session;$c('#community-verify').hidden=!session||session.verified;
     // Repaint only existing cards; do not download lists on every auth change.
     document.querySelectorAll('[data-admin-control]').forEach(el=>el.hidden=!admin);
   }
@@ -86,10 +86,11 @@
   const key=()=>Date.now().toString()+'_'+crypto.randomUUID();
   const toDataURL=blob=>new Promise((resolve,reject)=>{const reader=new FileReader();reader.onload=()=>resolve(reader.result);reader.onerror=reject;reader.readAsDataURL(blob);});
   $c('#photo-upload').onclick=e=>busy(e.currentTarget,async()=>{
-    if(!admin||!candidate)throw Error('관리자로 로그인하고 사진을 선택해주세요.');
+    if(!candidate)throw Error('사진을 선택해주세요.');
     const title=$c('#photo-title').value.trim();if(!title)throw Error('사진 설명을 입력해주세요.');
-    const id=key(),dataUrl=await toDataURL(candidate.blob);
-    await db('',{method:'PATCH',authorized:true,body:{['photos/'+id]:{title,createdAt:{'.sv':'timestamp'},width:candidate.width,height:candidate.height,bytes:candidate.blob.size},['photoBodies/'+id]:dataUrl}});
+    const photo=candidate,writer=await questionIdentity();
+    const id=key(),dataUrl=await toDataURL(photo.blob);
+    await db('',{method:'PATCH',authorized:true,authAccount:writer,body:{['photos/'+id]:{title,authorUid:writer.uid,createdAt:{'.sv':'timestamp'},width:photo.width,height:photo.height,bytes:photo.blob.size},['photoBodies/'+id]:dataUrl,['photoPosting/'+writer.uid]:{at:{'.sv':'timestamp'},id}}});
     candidate=null;$c('#photo-file').value='';$c('#photo-preview').hidden=true;status('사진을 게시했습니다.');await photos(false);
   });
   function node(tag,text,className){const el=document.createElement(tag);if(text!==undefined)el.textContent=text;if(className)el.className=className;return el;}
